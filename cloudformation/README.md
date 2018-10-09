@@ -47,9 +47,9 @@ In the codeblock above we created the security group. We define the resource we 
           Properties:
             SecurityGroupIds: [!Ref 'InstanceSecurityGroup']
             InstanceType: t2.micro
-            KeyName: workshop-key-usa
-            ImageId: "ami-04169656fea786776"
-            AvailabilityZone: "us-east-1a"
+            KeyName: workshop-key-eu
+            ImageId: "ami-00035f41c82244dab"
+            AvailabilityZone: "eu-west-1a"
             Tags:
               - Key: Name
                 Value: "Webserver1"
