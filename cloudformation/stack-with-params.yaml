@@ -1,0 +1,126 @@
+Parameters:
+
+  KeyName:
+    Description: 'Optional key pair of the ec2-user to establish a SSH connection to the Gitlab master. Leave blank for no SSH key.'
+    Type: String
+    Default: ''
+
+  GroupName:
+    Description: 'The name of the security group we are going to create.'
+    Type: String
+    Default: 'Workshop-SG'
+
+  FirstWebServer:
+    Description: 'The name of the first webserver we are going to create.'
+    Type: String
+    Default: 'Webserver1'
+
+  SecondWebServer:
+    Description: 'The name of the second webserver we are going to create.'
+    Type: String
+    Default: 'Webserver2'
+
+  IPtoSSH:
+    Description: 'The IP that is going to be used to SSH to the instances, this is going to be used in the security groups.'
+    Type: String
+    Default: ''
+
+  AMI:
+    Description: 'Defines which AMI is going to be used in this stack.'
+    Type: String
+    Default: 'ami-00035f41c82244dab'
+
+  Azone:
+    Description: 'In which availability zone do you want to deploy?'
+    Type: String
+    Default: 'eu-west-1a'
+
+Resources:
+
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: !Ref GroupName
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Ref IPtoSSH
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+
+  Webserver1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      SecurityGroupIds:
+        - !Ref 'InstanceSecurityGroup'
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      ImageId: !Ref AMI
+      AvailabilityZone: !Ref Azone
+      Tags:
+        - Key: Name
+          Value: !Ref FirstWebServer
+      UserData:
+        Fn::Base64: !Sub |
+           #!/bin/bash -xe
+           apt update -y
+           apt install apache2 -y
+           systemctl stop apache2
+           rm -rf /var/www/html/index.html
+           echo "<h1>Webserver1</h1>" > /var/www/html/index.html
+           systemctl start apache2
+           systemctl enable apache2
+
+  Webserver2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      SecurityGroupIds:
+        - !Ref 'InstanceSecurityGroup'
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      ImageId: !Ref AMI
+      AvailabilityZone: !Ref Azone
+      Tags:
+        - Key: Name
+          Value: !Ref SecondWebServer
+      UserData:
+        Fn::Base64: !Sub |
+           #!/bin/bash -xe
+           apt update -y
+           apt install apache2 -y
+           systemctl stop apache2
+           rm -rf /var/www/html/index.html
+           echo "<h1>Webserver2</h1>" > /var/www/html/index.html
+           systemctl start apache2
+           systemctl enable apache2
+
+  ElasticLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      AvailabilityZones:
+        Fn::GetAZs: ''
+      Instances:
+      - Ref: Webserver1
+      - Ref: Webserver2
+      Listeners:
+      - LoadBalancerPort: '80'
+        InstancePort: '80'
+        Protocol: HTTP
+      HealthCheck:
+        Target: HTTP:80/
+        HealthyThreshold: '3'
+        UnhealthyThreshold: '5'
+        Interval: '30'
+        Timeout: '5'
+      ConnectionDrainingPolicy:
+        Enabled: 'true'
+        Timeout: '60'
+
+Outputs:
+  URL:
+    Description: URL of the sample website
+    Value: !Join ['', ['http://', !GetAtt [ElasticLoadBalancer, DNSName]]]

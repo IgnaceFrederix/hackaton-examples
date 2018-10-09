@@ -1,0 +1,90 @@
+Resources:
+
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: "workshop-security-group-1"
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: "94.143.189.241/32"
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+
+  Webserver1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      SecurityGroupIds:
+        - !Ref 'InstanceSecurityGroup'
+
+      InstanceType: t2.micro
+      KeyName: workshop-key-eu
+      ImageId: "ami-00035f41c82244dab"
+      AvailabilityZone: "eu-west-1a"
+      Tags:
+        - Key: Name
+          Value: "Webserver1"
+      UserData:
+        Fn::Base64: !Sub |
+           #!/bin/bash -xe
+           apt update -y
+           apt install apache2 -y
+           systemctl stop apache2
+           rm -rf /var/www/html/index.html
+           echo "<h1>Webserver1</h1>" > /var/www/html/index.html
+           systemctl start apache2
+           systemctl enable apache2
+
+  Webserver2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      SecurityGroupIds:
+        - !Ref 'InstanceSecurityGroup'
+      InstanceType: t2.micro
+      KeyName: workshop-key-eu
+      ImageId: "ami-00035f41c82244dab"
+      AvailabilityZone: "eu-west-1a"
+      Tags:
+        - Key: Name
+          Value: "Webserver2"
+      UserData:
+        Fn::Base64: !Sub |
+           #!/bin/bash -xe
+           apt update -y
+           apt install apache2 -y
+           systemctl stop apache2
+           rm -rf /var/www/html/index.html
+           echo "<h1>Webserver2</h1>" > /var/www/html/index.html
+           systemctl start apache2
+           systemctl enable apache2
+
+  ElasticLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      AvailabilityZones:
+        Fn::GetAZs: ''
+      Instances:
+      - Ref: Webserver1
+      - Ref: Webserver2
+      Listeners:
+      - LoadBalancerPort: '80'
+        InstancePort: '80'
+        Protocol: HTTP
+      HealthCheck:
+        Target: HTTP:80/
+        HealthyThreshold: '3'
+        UnhealthyThreshold: '5'
+        Interval: '30'
+        Timeout: '5'
+      ConnectionDrainingPolicy:
+        Enabled: 'true'
+        Timeout: '60'
+
+Outputs:
+  URL:
+    Description: URL of the Loadbalancer, you can use this address to access the webservers in a load balanced way.
+    Value: !Join ['', ['http://', !GetAtt [ElasticLoadBalancer, DNSName]]]
