@@ -1,6 +1,6 @@
 # High available drupal with RDS database
 ## Environment
-![alt text](../Images/drupal-high-available.png "Drupal high available")
+![alt text](../images/drupal-high-available.png "Drupal high available")
 
 The goal of this lab is to set up a high available drupal setup that uses an Elastic File System and an Amazon Relational Database Service.
 

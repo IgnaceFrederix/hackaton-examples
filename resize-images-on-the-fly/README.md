@@ -1,6 +1,6 @@
 # Resize images on the fly
 ## Environment
-![alt text](../Images/on-the-fly-image-resizer.png "Drupal high available")
+![alt text](../images/on-the-fly-image-resizer.png "Drupal high available")
 
 1. A user requests a resized asset from an S3 bucket through its static website hosting endpoint. The bucket has a routing rule configured to redirect to the resize API any request for an object that cannot be found.
 1. Because the resized asset does not exist in the bucket, the request is temporarily redirected to the resize API method.

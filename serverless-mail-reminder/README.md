@@ -1,6 +1,6 @@
 # Serverless Text Message Reminder
 ## Environment
-![alt text](../Images/serverless-text-message-reminder.png "Serverless Mail Reminder Image")
+![alt text](../images/serverless-text-message-reminder.png "Serverless Mail Reminder Image")
 
 ## Technologies
 

@@ -1,6 +1,6 @@
 # Route 53 DNS failover from EC2 to S3 bucket
 ## Environment
-![alt text](../Images/Network-Diagram-Failover-S3.png "Network-Diagram-Failover-S3")
+![alt text](../images/Network-Diagram-Failover-S3.png "Network-Diagram-Failover-S3")
 
 ## Technologies
 

@@ -1,6 +1,6 @@
 # Simple Cloudformation setup
 ## Environment
-![alt text](../Images/cloudformation.png "Drupal high available")
+![alt text](../images/cloudformation.png "Drupal high available")
 
 The goal of this lab is to spawn a loadbalancer with 2 webservers and EFS. All coded in Cloudformation
 
